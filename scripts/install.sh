@@ -17,6 +17,7 @@ cd rootfs
 sudo $_7Z x ../${ROOTFS} -snld '-x!var/tmp' '-x!etc/mtab' '-x!dev' '-x!var/spool/lpd/lp'
 
 cat > install.sh <<EOF
+set -euxo pipefail
 mkdir home/tc
 chown tc home/tc
 su -l -c "tce-load -wi firmware-rpi-wifi" tc
