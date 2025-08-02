@@ -28,5 +28,5 @@ sudo mount --bind /proc proc
 sudo mount --bind /dev dev
 sudo mount --bind /sys sys
 sudo mount --bind /tmp tmp 
-sudo chroot . ./install.sh
+sudo chroot . bin/bash -c ./install.sh
 echo "Exited chroot"
