@@ -18,6 +18,7 @@ jobs:
       VERSION_ROOTFS: "16.0"
       VERSION_FAMILY: "16.x"
       ARCH: "aarch64"
+      _7Z: "7z"
 
     steps:
       - name: build

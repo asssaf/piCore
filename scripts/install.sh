@@ -5,16 +5,16 @@ set -euxo pipefail
 PACKAGE_VERSION="${PACKAGE}-${VERSION}"
 ROOTFS="rootfs-${PACKAGE}-${VERSION_ROOTFS}"
 curl -sLo "${PACKAGE_VERSION}.img.gz" "http://tinycorelinux.net/${VERSION_FAMILY}/${ARCH}/release/RPi/${PACKAGE_VERSION}.img.gz"
-7z x "${PACKAGE_VERSION}.img.gz"
-7z x "${PACKAGE_VERSION}.img"
+$_7Z x "${PACKAGE_VERSION}.img.gz"
+$_7Z x "${PACKAGE_VERSION}.img"
 mkdir boot
 cd boot
-7z x ../0.fat
+$_7Z x ../0.fat
 cd ..
-7z x "boot/${ROOTFS}.gz"
+$_7Z x "boot/${ROOTFS}.gz"
 mkdir rootfs
 cd rootfs
-sudo 7z x ../${ROOTFS} -snld '-x!var/tmp' '-x!etc/mtab' '-x!dev' '-x!var/spool/lpd/lp' 
+sudo $_7Z x ../${ROOTFS} -snld '-x!var/tmp' '-x!etc/mtab' '-x!dev' '-x!var/spool/lpd/lp'
 
 cat > install.sh <<EOF
 mkdir home/tc
