@@ -21,6 +21,9 @@ jobs:
       _7Z: "7z"
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        
       - name: build
         run: |
           scripts/install.sh
