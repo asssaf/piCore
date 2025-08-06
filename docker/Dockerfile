@@ -53,7 +53,7 @@ RUN for EXT in net-usb-KERNEL usb-serial-KERNEL; \
 RUN ( mkdir /tmp/mydata \
         && cd /tmp/mydata \
         && tar xvzf /etc/sysconfig/tcedir/mydata.tgz \
-        && sed -i -e 's|# \(/usr/sbin/startserialtty &\)|\1|' opt/bootlocal.sh \
+        && sed -i -e 's|# \(/usr/sbin/startserialtty &\)|for i in `cat /proc/cmdline`; do case $i in serial0=*) ln -s ${i#*=} /dev/serial0;; esac; done\n\1|' opt/bootlocal.sh \
         && tar cvzf /etc/sysconfig/tcedir/mydata.tgz . )
 
 
