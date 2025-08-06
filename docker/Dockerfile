@@ -65,3 +65,11 @@ COPY --from=install /etc/sysconfig/tcedir/mydata.tgz /
 FROM scratch AS tce
 
 COPY --from=install /etc/sysconfig/tcedir /tce
+
+
+FROM scratch AS rootfs
+
+ARG PACKAGE="piCore64"
+ARG VERSION_ROOTFS="16.0"
+
+COPY --from=extract /fat/rootfs-${PACKAGE}-${VERSION_ROOTFS}.gz /
