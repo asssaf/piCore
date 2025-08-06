@@ -116,6 +116,25 @@ jobs:
           name: tce-disk.img
           path: "${{github.workspace}}/artifacts/tce-disk.img"
 
+      - name: Export rootfs
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile
+          platforms: linux/arm64/v8
+          target: rootfs
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: "type=local,dest=${{github.workspace}}/artifacts/"
+
+      - name: upload rootfs
+        uses: actions/upload-artifact@v4
+        with:
+          name: rootfs
+          path: "${{github.workspace}}/artifacts/rootfs-piCore64-16.0.gz"
+
   build-kernel-qemu:
     runs-on: ubuntu-24.04-arm
     steps:
@@ -207,3 +226,63 @@ jobs:
         with:
           name: modules-qemu-${{ env.KERNEL_VERSION }}
           path: "${{github.workspace}}/artifacts/modules-${{ env.KERNEL_VERSION }}.tar"
+
+  test:
+    runs-on: ubuntu-24.04
+    needs: [build, build-kernel-qemu]
+    steps:
+      - name: install-qemu
+        run: |
+          sudo apt install -y qemu-system-arm
+
+      - name: download-kernel
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel8-qemu-${{ env.KERNEL_VERSION }}
+          path: "${{github.workspace}}"
+
+      - name: download-tce-disk
+        uses: actions/download-artifact@v4
+        with:
+          name: tce-disk.img
+          path: "${{github.workspace}}"
+
+      - name: download-rootfs
+        uses: actions/download-artifact@v4
+        with:
+          name: rootfs
+          path: "${{github.workspace}}"
+
+      - name: run
+        timeout-minutes: 5
+        run: |
+          set -x
+
+          find .
+
+          KERNEL="${GITHUB_WORKSPACE}/Image-${KERNEL_VERSION}"
+          INITRD="${GITHUB_WORKSPACE}/rootfs-piCore64-16.0.gz"
+          IMAGE="${GITHUB_WORKSPACE}/tce-disk.img"
+          CMDLINE="console=ttyAMA0,115200 text root=/dev/ram0 nortc rootwait loglevel=3 tce=vda1 debug=y serial0=ttyAMA0 nozswap"
+          qemu-system-aarch64 -machine virt -cpu cortex-a72 -smp 2 -m 1G \
+            -kernel "$KERNEL" -append "$CMDLINE" \
+            -initrd "$INITRD" \
+            -nographic \
+            -drive "format=raw,file=$IMAGE,if=none,id=hd0,cache=writeback,media=disk" \
+            -device virtio-blk,drive=hd0,bootindex=0 \
+            -netdev user,id=mynet,hostfwd=tcp::2223-:22 \
+            -device virtio-net-pci,netdev=mynet \
+            -monitor telnet:127.0.0.1:5555,server,nowait |& tee qemu.out &
+
+          until sshpass -p piCore ssh -o StrictHostKeychecking=no -p 2223 tc@127.0.0.1 sudo poweroff
+          do
+            sleep 5
+          done
+
+      - name: upload log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu.out
+          path: "${{github.workspace}}/qemu.out"
+
