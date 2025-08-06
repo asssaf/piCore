@@ -1,0 +1,209 @@
+name: build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+  workflow_dispatch:
+
+env:
+  KERNEL_FAMILY: 6.x
+  KERNEL_VERSION: 6.12.25
+  TAG: lastest
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/asssaf/picore
+          tags: "type=raw,value=${{ env.TAG }},priority=2000"
+
+      - name: Build and push builder image
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile
+          platforms: linux/arm64/v8
+          target: install
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Export mydata.tgz
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile
+          platforms: linux/arm64/v8
+          target: mydata
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: "type=local,dest=${{github.workspace}}/artifacts"
+
+      - name: upload mydata
+        uses: actions/upload-artifact@v4
+        with:
+          name: mydata.tgz
+          path: "${{github.workspace}}/artifacts/mydata.tgz"
+
+      - name: Export tce
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile
+          platforms: linux/arm64/v8
+          target: tce
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: "type=tar,dest=${{github.workspace}}/artifacts/tce.tar"
+
+      - name: upload tce
+        uses: actions/upload-artifact@v4
+        with:
+          name: tce.tar
+          path: "${{github.workspace}}/artifacts/tce.tar"
+
+      - name: build-tce-image
+        run: |
+          set -xe
+          sudo apt install -y dosfstools
+          truncate -s 200M tce.img
+          mkfs.vfat -n RECOVERY -F 16 tce.img
+          sudo mount -o loop tce.img /mnt
+          sudo tar -xvf "${GITHUB_WORKSPACE}/artifacts/tce.tar" -C /mnt --no-same-owner --no-same-permissions
+          sudo umount /mnt
+          mv tce.img "${GITHUB_WORKSPACE}/artifacts/tce.img"
+
+      - name: upload tce image
+        uses: actions/upload-artifact@v4
+        with:
+          name: tce.img
+          path: "${{github.workspace}}/artifacts/tce.img"
+
+      - name: build-disk-image
+        run: |
+          sudo apt install -y parted
+          truncate -s 300M disk.img
+          parted -s disk.img mklabel msdos mkpart primary fat16 2048s 100%
+          dd if="${GITHUB_WORKSPACE}/artifacts/tce.img" of=disk.img bs=512 seek=2048
+          mv disk.img "${GITHUB_WORKSPACE}/artifacts/tce-disk.img"
+
+      - name: upload disk image
+        uses: actions/upload-artifact@v4
+        with:
+          name: tce-disk.img
+          path: "${{github.workspace}}/artifacts/tce-disk.img"
+
+  build-kernel-qemu:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/asssaf/picore-kernel-qemu
+          tags: "type=raw,value=${{ env.TAG }},priority=2000"
+
+      - name: build deps
+        if: false
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile.kernel-qemu
+          platforms: linux/arm64/v8
+          target: deps
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: build kernel
+        if: false
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile.kernel-qemu
+          platforms: linux/arm64/v8
+          target: build
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: output kernel
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile.kernel-qemu
+          platforms: linux/arm64/v8
+          target: kernel
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: "type=local,dest=${{github.workspace}}/artifacts"
+
+      - name: upload kernel for qemu
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel8-qemu-${{ env.KERNEL_VERSION }}
+          path: "${{github.workspace}}/artifacts/Image-${{ env.KERNEL_VERSION }}"
+
+      - name: upload config for qemu
+        uses: actions/upload-artifact@v4
+        with:
+          name: config-kernel8-qemu-${{ env.KERNEL_VERSION }}
+          path: "${{github.workspace}}/artifacts/config-${{ env.KERNEL_VERSION }}"
+
+      - name: output modules
+        if: false
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile.kernel-qemu
+          platforms: linux/arm64/v8
+          target: modules
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: "type=tar,dest=${{github.workspace}}/artifacts/modules-${{ env.KERNEL_VERSION }}.tar"
+
+      - name: upload modules for qemu
+        if: false
+        uses: actions/upload-artifact@v4
+        with:
+          name: modules-qemu-${{ env.KERNEL_VERSION }}
+          path: "${{github.workspace}}/artifacts/modules-${{ env.KERNEL_VERSION }}.tar"
