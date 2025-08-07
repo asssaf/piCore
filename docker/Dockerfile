@@ -3,15 +3,17 @@ FROM debian AS extract
 RUN apt update
 RUN apt install -y cpio 7zip curl
 
-ARG PACKAGE="piCore64"
-ARG VERSION="16.0.0"
-ARG VERSION_ROOTFS="16.0"
-ARG VERSION_FAMILY="16.x"
-ARG ARCH="aarch64"
+ARG PACKAGE
+ARG PICORE_VERSION_MAJOR
+ARG PICORE_VERSION_MINOR
+ARG PICORE_VERSION_MICRO
 ARG _7Z="7zz"
 
-ENV PACKAGE_VERSION="${PACKAGE}-${VERSION}"
-RUN curl -sLo "/${PACKAGE_VERSION}.img.gz" "http://tinycorelinux.net/${VERSION_FAMILY}/${ARCH}/release/RPi/${PACKAGE_VERSION}.img.gz"
+ENV ARCH="${PACKAGE/*piCore64*/aarch64}"
+ENV ARCH="${ARCH/*piCore*/armhf}"
+ENV PACKAGE_VERSION="${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.${PICORE_VERSION_MICRO}"
+
+RUN curl -sLo "/${PACKAGE_VERSION}.img.gz" "http://tinycorelinux.net/${PICORE_VERSION_MAJOR}.x/${ARCH}/release/RPi/${PACKAGE_VERSION}.img.gz"
 
 RUN $_7Z x "${PACKAGE_VERSION}.img.gz"
 RUN $_7Z x "${PACKAGE_VERSION}.img"
@@ -22,7 +24,7 @@ RUN ( mkdir fat \
 
 RUN ( mkdir rootfs \
         && cd rootfs \
-        && zcat ../fat/rootfs-${PACKAGE}-${VERSION_ROOTFS}.gz | cpio -idv )
+        && zcat ../fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz | cpio -idv )
 
 RUN $_7Z x 1.img
 RUN mv /tce rootfs/etc/sysconfig/tcedir
@@ -69,7 +71,8 @@ COPY --from=install /etc/sysconfig/tcedir /tce
 
 FROM scratch AS rootfs
 
-ARG PACKAGE="piCore64"
-ARG VERSION_ROOTFS="16.0"
+ARG PACKAGE
+ARG PICORE_VERSION_MAJOR
+ARG PICORE_VERSION_MINOR
 
-COPY --from=extract /fat/rootfs-${PACKAGE}-${VERSION_ROOTFS}.gz /
+COPY --from=extract /fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz /
