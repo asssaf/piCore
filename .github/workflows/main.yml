@@ -258,8 +258,6 @@ jobs:
         run: |
           set -x
 
-          find .
-
           KERNEL="${GITHUB_WORKSPACE}/Image-${KERNEL_VERSION}"
           INITRD="${GITHUB_WORKSPACE}/rootfs-piCore64-16.0.gz"
           IMAGE="${GITHUB_WORKSPACE}/tce-disk.img"
