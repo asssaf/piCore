@@ -32,12 +32,21 @@ RUN mv /tce rootfs/etc/sysconfig/tcedir
 RUN ( cd rootfs \
         && tar xvzf etc/sysconfig/tcedir/mydata.tgz )
 
+RUN ( cd rootfs \
+        && $_7Z x etc/sysconfig/tcedir/optional/openssl.tcz \
+        && $_7Z x etc/sysconfig/tcedir/optional/ca-certificates.tcz )
+
 
 FROM scratch AS install
 
 COPY --from=extract rootfs/ /
 
+ENV LD_LIBRARY_PATH=/usr/local/lib
+
 RUN chown -R tc /etc/sysconfig/tcedir
+RUN chmod u+s /usr/bin/sudo
+
+RUN usr/local/tce.installed/ca-certificates
 
 ARG KERNEL=6.12.25-piCore-v8
 
@@ -48,6 +57,9 @@ RUN for EXT in net-usb-KERNEL usb-serial-KERNEL; \
                 su -l tc -c "tce-load -w $EXT" ; \
                 echo "$EXT" >> /etc/sysconfig/tcedir/onboot.lst ; \
         done
+
+# install external extensions
+RUN wget -O /etc/sysconfig/tcedir/optional/tryboot.tcz https://github.com/asssaf/picore-tryboot/releases/download/v0.0.1/tryboot.tcz
 
 #TODO filetool doesn't work because it looks for a mounted device
 #RUN sudo filetool.sh -d
