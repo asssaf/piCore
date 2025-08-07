@@ -41,7 +41,7 @@ FROM scratch AS install
 
 COPY --from=extract rootfs/ /
 
-ENV LD_LIBRARY_PATH=/usr/local/lib
+RUN ldconfig
 
 RUN chown -R tc /etc/sysconfig/tcedir
 RUN chmod u+s /usr/bin/sudo
@@ -59,7 +59,12 @@ RUN for EXT in net-usb-KERNEL usb-serial-KERNEL; \
         done
 
 # install external extensions
-RUN wget -O /etc/sysconfig/tcedir/optional/tryboot.tcz https://github.com/asssaf/picore-tryboot/releases/download/v0.0.1/tryboot.tcz
+RUN ( \
+        TCEMIRROR="$(cat /opt/tcemirror)" \
+        && echo "https://github.com/asssaf/picore-tryboot/raw/refs/heads/tcz-v0.0.1" > /opt/tcemirror \
+        && su -l tc -c "tce-load -w tryboot" \
+        && echo "$TCEMIRROR" > /opt/tcemirror \
+)
 
 #TODO filetool doesn't work because it looks for a mounted device
 #RUN sudo filetool.sh -d
