@@ -11,11 +11,17 @@ on:
 env:
   KERNEL_FAMILY: 6.x
   KERNEL_VERSION: 6.12.25
+  PICORE_VERSION_MAJOR: 16
+  PICORE_VERSION_MINOR: 0
+  PICORE_VERSION_MICRO: 0
   TAG: lastest
 
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        package: [piCore, piCore64]
 
     steps:
       - name: 'Login to GitHub Container Registry'
@@ -41,6 +47,11 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: install
+          build-args: |
+            PACKAGE=${{ matrix.package }}
+            PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
+            PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
+            PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -53,6 +64,11 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: mydata
+          build-args: |
+            PACKAGE=${{ matrix.package }}
+            PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
+            PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
+            PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -63,7 +79,7 @@ jobs:
       - name: upload mydata
         uses: actions/upload-artifact@v4
         with:
-          name: mydata.tgz
+          name: mydata-${{matrix.package}}.tgz
           path: "${{github.workspace}}/artifacts/mydata.tgz"
 
       - name: Export tce
@@ -72,6 +88,11 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: tce
+          build-args: |
+            PACKAGE=${{ matrix.package }}
+            PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
+            PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
+            PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -82,7 +103,7 @@ jobs:
       - name: upload tce
         uses: actions/upload-artifact@v4
         with:
-          name: tce.tar
+          name: tce-${{matrix.package}}.tar
           path: "${{github.workspace}}/artifacts/tce.tar"
 
       - name: build-tce-image
@@ -99,7 +120,7 @@ jobs:
       - name: upload tce image
         uses: actions/upload-artifact@v4
         with:
-          name: tce.img
+          name: tce-${{matrix.package}}.img
           path: "${{github.workspace}}/artifacts/tce.img"
 
       - name: build-disk-image
@@ -113,7 +134,7 @@ jobs:
       - name: upload disk image
         uses: actions/upload-artifact@v4
         with:
-          name: tce-disk.img
+          name: tce-disk-${{matrix.package}}.img
           path: "${{github.workspace}}/artifacts/tce-disk.img"
 
       - name: Export rootfs
@@ -122,6 +143,11 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: rootfs
+          build-args: |
+            PACKAGE=${{ matrix.package }}
+            PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
+            PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
+            PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -132,8 +158,8 @@ jobs:
       - name: upload rootfs
         uses: actions/upload-artifact@v4
         with:
-          name: rootfs
-          path: "${{github.workspace}}/artifacts/rootfs-piCore64-16.0.gz"
+          name: rootfs-${{matrix.package}}
+          path: "${{github.workspace}}/artifacts/rootfs-${{matrix.package}}-${{env.PICORE_VERSION_MAJOR}}.${{env.PICORE_VERSION_MINOR}}.gz"
 
   build-kernel-qemu:
     runs-on: ubuntu-24.04-arm
@@ -228,6 +254,9 @@ jobs:
           path: "${{github.workspace}}/artifacts/modules-${{ env.KERNEL_VERSION }}.tar"
 
   test:
+    strategy:
+      matrix:
+        package: [piCore, piCore64]
     runs-on: ubuntu-24.04
     needs: [build, build-kernel-qemu]
     steps:
@@ -244,13 +273,13 @@ jobs:
       - name: download-tce-disk
         uses: actions/download-artifact@v4
         with:
-          name: tce-disk.img
+          name: tce-disk-${{matrix.package}}.img
           path: "${{github.workspace}}"
 
       - name: download-rootfs
         uses: actions/download-artifact@v4
         with:
-          name: rootfs
+          name: rootfs-${{matrix.package}}
           path: "${{github.workspace}}"
 
       - name: run
@@ -258,10 +287,8 @@ jobs:
         run: |
           set -x
 
-          find .
-
           KERNEL="${GITHUB_WORKSPACE}/Image-${KERNEL_VERSION}"
-          INITRD="${GITHUB_WORKSPACE}/rootfs-piCore64-16.0.gz"
+          INITRD="${GITHUB_WORKSPACE}/rootfs-${{matrix.package}}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz"
           IMAGE="${GITHUB_WORKSPACE}/tce-disk.img"
           CMDLINE="console=ttyAMA0,115200 text root=/dev/ram0 nortc rootwait loglevel=3 tce=vda1 debug=y serial0=ttyAMA0 nozswap"
           qemu-system-aarch64 -machine virt -cpu cortex-a72 -smp 2 -m 1G \
