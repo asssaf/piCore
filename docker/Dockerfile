@@ -1,4 +1,4 @@
-FROM debian AS extract
+FROM debian:bookworm AS extract
 
 RUN apt update
 RUN apt install -y cpio 7zip curl

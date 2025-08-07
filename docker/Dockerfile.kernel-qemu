@@ -1,4 +1,4 @@
-FROM debian AS deps
+FROM debian:bookworm AS deps
 
 RUN apt update
 RUN apt install -y curl fakeroot git kernel-wedge quilt ccache flex bison libssl-dev dh-exec rsync libelf-dev bc crossbuild-essential-arm64
