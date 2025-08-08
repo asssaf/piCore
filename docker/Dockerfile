@@ -54,8 +54,8 @@ RUN rm /bin/uname && echo "echo $KERNEL" > /bin/uname && chmod +x /bin/uname
 
 RUN for EXT in net-usb-KERNEL usb-serial-KERNEL; \
         do \
-                su -l tc -c "tce-load -w $EXT" ; \
-                echo "$EXT" >> /etc/sysconfig/tcedir/onboot.lst ; \
+                su -l tc -c "tce-load -w $EXT" \
+                && echo "$EXT" >> /etc/sysconfig/tcedir/onboot.lst ; \
         done
 
 # install external extensions
@@ -63,6 +63,7 @@ RUN ( \
         TCEMIRROR="$(cat /opt/tcemirror)" \
         && echo "https://github.com/asssaf/picore-tryboot/raw/refs/heads/tcz-v0.0.1" > /opt/tcemirror \
         && su -l tc -c "tce-load -w tryboot" \
+        && echo "tryboot" >> /etc/sysconfig/tcedir/onboot.lst \
         && echo "$TCEMIRROR" > /opt/tcemirror \
 )
 
