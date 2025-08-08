@@ -32,12 +32,21 @@ RUN mv /tce rootfs/etc/sysconfig/tcedir
 RUN ( cd rootfs \
         && tar xvzf etc/sysconfig/tcedir/mydata.tgz )
 
+RUN ( cd rootfs \
+        && $_7Z x etc/sysconfig/tcedir/optional/openssl.tcz \
+        && $_7Z x etc/sysconfig/tcedir/optional/ca-certificates.tcz )
+
 
 FROM scratch AS install
 
 COPY --from=extract rootfs/ /
 
+RUN ldconfig
+
 RUN chown -R tc /etc/sysconfig/tcedir
+RUN chmod u+s /usr/bin/sudo
+
+RUN usr/local/tce.installed/ca-certificates
 
 ARG KERNEL=6.12.25-piCore-v8
 
@@ -45,9 +54,18 @@ RUN rm /bin/uname && echo "echo $KERNEL" > /bin/uname && chmod +x /bin/uname
 
 RUN for EXT in net-usb-KERNEL usb-serial-KERNEL; \
         do \
-                su -l tc -c "tce-load -w $EXT" ; \
-                echo "$EXT" >> /etc/sysconfig/tcedir/onboot.lst ; \
+                su -l tc -c "tce-load -w $EXT" \
+                && echo "$EXT" >> /etc/sysconfig/tcedir/onboot.lst ; \
         done
+
+# install external extensions
+RUN ( \
+        TCEMIRROR="$(cat /opt/tcemirror)" \
+        && echo "https://github.com/asssaf/picore-tryboot/raw/refs/heads/tcz-v0.0.1" > /opt/tcemirror \
+        && su -l tc -c "tce-load -w tryboot" \
+        && echo "tryboot" >> /etc/sysconfig/tcedir/onboot.lst \
+        && echo "$TCEMIRROR" > /opt/tcemirror \
+)
 
 #TODO filetool doesn't work because it looks for a mounted device
 #RUN sudo filetool.sh -d
