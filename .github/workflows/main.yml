@@ -340,7 +340,7 @@ jobs:
       - name: run
         timeout-minutes: 5
         run: |
-          set -x
+          set -euxo pipefail
 
           KERNEL="${GITHUB_WORKSPACE}/Image-${KERNEL_VERSION}"
           INITRD="${GITHUB_WORKSPACE}/rootfs-${{matrix.package}}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz"
@@ -356,10 +356,12 @@ jobs:
             -device virtio-net-pci,netdev=mynet \
             -monitor telnet:127.0.0.1:5555,server,nowait |& tee qemu.out &
 
-          until sshpass -p piCore ssh -o StrictHostKeychecking=no -p 2223 tc@127.0.0.1 sudo poweroff
+          until sshpass -p piCore ssh -o StrictHostKeychecking=no -p 2223 tc@127.0.0.1 echo hi
           do
             sleep 5
           done
+          sshpass -p piCore ssh -o StrictHostKeychecking=no -p 2223 tc@127.0.0.1 tryboot
+          sshpass -p piCore ssh -o StrictHostKeychecking=no -p 2223 tc@127.0.0.1 sudo poweroff
 
       - name: upload log on failure
         if: failure()
