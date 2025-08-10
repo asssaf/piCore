@@ -123,19 +123,74 @@ jobs:
           name: tce-${{matrix.package}}.img
           path: "${{github.workspace}}/artifacts/tce.img"
 
-      - name: build-disk-image
+      - name: build-tce-disk-image
         run: |
           sudo apt install -y parted
-          truncate -s 300M disk.img
-          parted -s disk.img mklabel msdos mkpart primary fat16 2048s 100%
-          dd if="${GITHUB_WORKSPACE}/artifacts/tce.img" of=disk.img bs=512 seek=2048
-          mv disk.img "${GITHUB_WORKSPACE}/artifacts/tce-disk.img"
+          truncate -s 300M tce-disk.img
+          parted -s tce-disk.img mklabel msdos mkpart primary fat16 2048s 100%
+          dd if="${GITHUB_WORKSPACE}/artifacts/tce.img" of=tce-disk.img bs=512 seek=2048
+          mv tce-disk.img "${GITHUB_WORKSPACE}/artifacts/tce-disk.img"
 
       - name: upload disk image
         uses: actions/upload-artifact@v4
         with:
           name: tce-disk-${{matrix.package}}.img
           path: "${{github.workspace}}/artifacts/tce-disk.img"
+
+      - name: Export firmware-with-tce
+        uses: docker/build-push-action@v6
+        with:
+          file: docker/Dockerfile
+          platforms: linux/arm64/v8
+          target: firmware
+          build-args: |
+            PACKAGE=${{ matrix.package }}
+            PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
+            PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
+            PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: "type=tar,dest=${{github.workspace}}/artifacts/firmware-with-tce.tar"
+
+      - name: upload firmware-with-tce
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-with-tce-${{matrix.package}}.tar
+          path: "${{github.workspace}}/artifacts/firmware-with-tce.tar"
+
+      - name: build-firmware-with-tce-image
+        run: |
+          set -xe
+          sudo apt install -y dosfstools
+          truncate -s 200M firmware-with-tce.img
+          mkfs.vfat -n RECOVERY -F 16 firmware-with-tce.img
+          sudo mount -o loop firmware-with-tce.img /mnt
+          sudo tar -xvf "${GITHUB_WORKSPACE}/artifacts/firmware-with-tce.tar" -C /mnt --no-same-owner --no-same-permissions
+          sudo umount /mnt
+          mv firmware-with-tce.img "${GITHUB_WORKSPACE}/artifacts/firmware-with-tce.img"
+
+      - name: upload firmware with tce image
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-with-tce-${{matrix.package}}.img
+          path: "${{github.workspace}}/artifacts/firmware-with-tce.img"
+
+      - name: build-firmware-disk-image
+        run: |
+          sudo apt install -y parted
+          truncate -s 300M firmware-with-tce-disk.img
+          parted -s firmware-with-tce-disk.img mklabel msdos mkpart primary fat16 2048s 100%
+          dd if="${GITHUB_WORKSPACE}/artifacts/firmware-with-tce.img" of=firmware-with-tce-disk.img bs=512 seek=2048
+          mv firmware-with-tce-disk.img "${GITHUB_WORKSPACE}/artifacts/firmware-with-tce-disk.img"
+
+      - name: upload firmware with tce disk image
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-with-tce-disk-${{matrix.package}}.img
+          path: "${{github.workspace}}/artifacts/firmware-with-tce-disk.img"
 
       - name: Export rootfs
         uses: docker/build-push-action@v6
