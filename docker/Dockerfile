@@ -87,6 +87,12 @@ FROM scratch AS tce
 COPY --from=install /etc/sysconfig/tcedir /tce
 
 
+FROM scratch AS firmware
+
+COPY --from=extract /fat /
+COPY --from=tce /tce /tce
+
+
 FROM scratch AS rootfs
 
 ARG PACKAGE
