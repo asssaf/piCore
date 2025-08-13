@@ -60,10 +60,16 @@ RUN for EXT in net-usb-KERNEL usb-serial-KERNEL; \
 
 # install external extensions
 RUN ( \
-        TCEMIRROR="$(cat /opt/tcemirror)" \
-        && echo "https://github.com/asssaf/picore-tryboot/raw/refs/heads/tcz-v0.0.1" > /opt/tcemirror \
-        && su -l tc -c "tce-load -w tryboot" \
-        && echo "tryboot.tcz" >> /etc/sysconfig/tcedir/onboot.lst \
+        declare -A EXTERNAL \
+        && EXTERNAL["tryboot"]="https://github.com/asssaf/picore-tryboot/raw/refs/heads/tcz-v0.0.1" \
+        && EXTERNAL["busybox-system"]="https://github.com/asssaf/picore-busybox-system/raw/refs/heads/tcz-v0.0.1" \
+        && TCEMIRROR="$(cat /opt/tcemirror)" ; \
+        for EXT in ${!EXTERNAL[@]}; \
+        do \
+                echo "${EXTERNAL[$EXT]}" > /opt/tcemirror \
+                && su -l tc -c "tce-load -w $EXT" \
+                && echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
+        done \
         && echo "$TCEMIRROR" > /opt/tcemirror \
 )
 
