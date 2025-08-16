@@ -317,6 +317,7 @@ jobs:
     steps:
       - name: install-qemu
         run: |
+          sudo apt update
           sudo apt install -y qemu-system-arm
 
       - name: download-kernel
