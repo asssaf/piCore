@@ -70,14 +70,19 @@ RUN ( \
         && echo "$TCEMIRROR" > /opt/tcemirror \
 )
 
-#TODO filetool doesn't work because it looks for a mounted device
-#RUN sudo filetool.sh -d
+# RUN ( mkdir /tmp/mydata \
+#         && cd /tmp/mydata \
+#         && tar xvzf /etc/sysconfig/tcedir/mydata.tgz \
+#         && sed -i -e 's|# \(/usr/sbin/startserialtty &\)|for i in `cat /proc/cmdline`; do case $i in serial0=*) ln -s ${i#*=} /dev/serial0;; esac; done\n\1|' opt/bootlocal.sh \
+#         && tar cvzf /etc/sysconfig/tcedir/mydata.tgz . )
 
-RUN ( mkdir /tmp/mydata \
-        && cd /tmp/mydata \
-        && tar xvzf /etc/sysconfig/tcedir/mydata.tgz \
-        && sed -i -e 's|# \(/usr/sbin/startserialtty &\)|for i in `cat /proc/cmdline`; do case $i in serial0=*) ln -s ${i#*=} /dev/serial0;; esac; done\n\1|' opt/bootlocal.sh \
-        && tar cvzf /etc/sysconfig/tcedir/mydata.tgz . )
+RUN echo "runsvdir /opt/services/current >& /var/log/runsvdir.log &" >> /opt/bootlocal.sh
+RUN echo "supervise" >> /opt/.xfiletool.lst
+
+COPY mydata /
+
+RUN ln -s /etc/sysconfig/tcedir/ /mnt/nfs
+RUN filetool.sh -b nfs || cat /tmp/backup_status
 
 
 FROM scratch AS mydata
