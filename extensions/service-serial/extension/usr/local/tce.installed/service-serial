@@ -1,0 +1,5 @@
+#!/bin/sh
+
+mkdir -p /var/run/service-serial/log
+
+runsv /tmp/tcloop/service-serial/usr/local/init.d/services/service-serial &
