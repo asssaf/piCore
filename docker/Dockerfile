@@ -37,6 +37,16 @@ RUN ( cd rootfs \
         && $_7Z x etc/sysconfig/tcedir/optional/ca-certificates.tcz )
 
 
+FROM debian:bookworm AS extensions
+
+RUN apt-get update \
+        && apt-get install -y squashfs-tools make \
+        && apt-get clean
+
+COPY extensions /extensions
+RUN make -C /extensions OUTPUT_DIR=/tcz
+
+
 FROM scratch AS install
 
 COPY --from=extract rootfs/ /
@@ -79,7 +89,7 @@ RUN ( \
 #RUN echo "runsvdir /opt/services/current >& /var/log/runsvdir.log &" >> /opt/bootlocal.sh
 #RUN echo "supervise" >> /opt/.xfiletool.lst
 
-COPY --from=extensions /service-serial.tcz /etc/sysconfig/tcedir/optional/
+COPY --from=extensions /tcz/service-serial.tcz /etc/sysconfig/tcedir/optional/
 RUN echo "service-serial.tcz" >> /etc/sysconfig/tcedir/onboot.lst
 
 
