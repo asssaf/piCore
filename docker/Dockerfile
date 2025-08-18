@@ -80,7 +80,7 @@ RUN ( \
         && echo "$TCEMIRROR" > /opt/tcemirror \
 )
 
-COPY --from=extensions /tcz/service-serial.tcz /etc/sysconfig/tcedir/optional/
+COPY --from=extensions /tcz/* /etc/sysconfig/tcedir/optional/
 RUN echo "service-serial.tcz" >> /etc/sysconfig/tcedir/onboot.lst
 
 
