@@ -50,7 +50,7 @@ RUN usr/local/tce.installed/ca-certificates
 
 ARG KERNEL=6.12.25-piCore-v8
 
-RUN rm /bin/uname && echo "echo $KERNEL" > /bin/uname && chmod +x /bin/uname
+RUN rm /bin/uname && echo -e "#!/bin/sh\necho $KERNEL" > /bin/uname && chmod +x /bin/uname
 
 RUN for EXT in net-usb-KERNEL usb-serial-KERNEL; \
         do \
