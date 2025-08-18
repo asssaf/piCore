@@ -1,5 +1,18 @@
 #!/bin/sh
 
-mkdir -p /var/run/service-serial/log
+DEVICES="ttyAMA0"
 
-runsv /tmp/tcloop/service-serial/usr/local/init.d/services/service-serial &
+for DEVICE in $DEVICES
+do
+	BASE="/usr/local/etc/init.d/services"
+	SERVICE="service-serial"
+	SERVICE_DIR="${BASE}/${SERVICE}"
+	SERVICE_DEVICE="${SERVICE}.${DEVICE}"
+	SERVICE_DEVICE_DIR="${BASE}/${SERVICE_DEVICE}"
+
+	mkdir -p "${SERVICE_DEVICE_DIR}/log"
+	ln -s "${SERVICE_DIR}/log/run" "${SERVICE_DEVICE_DIR}/log/run"
+	ln -s "${SERVICE_DIR}/run" "${SERVICE_DEVICE_DIR}/run"
+
+	runsv "${SERVICE_DEVICE_DIR}" &
+done
