@@ -10,7 +10,7 @@ set -eux
 : ${TARGET:=install}
 : ${IMAGE:=asssaf/picore}
 
-docker run --privileged --rm tonistiigi/binfmt --install arm64
+#docker run --privileged --rm tonistiigi/binfmt --install arm64
 
 docker build --platform=${PLATFORM} --target=${TARGET} \
     --build-arg PACKAGE=${PACKAGE} \
