@@ -23,12 +23,6 @@ jobs:
       matrix:
         package: [piCore, piCore64]
 
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
-
     steps:
       - name: 'Login to GitHub Container Registry'
         uses: docker/login-action@v3
@@ -39,9 +33,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          # network=host driver-opt needed to push to local registry
-          driver-opts: network=host
 
       - name: Docker meta
         id: meta
@@ -50,27 +41,12 @@ jobs:
           images: ghcr.io/asssaf/picore
           tags: "type=raw,value=${{ env.TAG }},priority=2000"
 
-      - name: Build additional extensions
-        uses: docker/build-push-action@v6
-        with:
-          context: "{{defaultContext}}:extensions/service-serial"
-          file: docker/Dockerfile
-          platforms: linux/arm64/v8
-          build-args: |
-            TCZ=service-serial.tcz
-          push: true
-          tags: localhost:5000/extensions
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Build and push builder image
         uses: docker/build-push-action@v6
         with:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: install
-          build-contexts: |
-            extensions=docker-image://localhost:5000/extensions:latest
           build-args: |
             PACKAGE=${{ matrix.package }}
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
@@ -88,8 +64,6 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: mydata
-          build-contexts: |
-            extensions=docker-image://localhost:5000/extensions:latest
           build-args: |
             PACKAGE=${{ matrix.package }}
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
@@ -114,8 +88,6 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: tce
-          build-contexts: |
-            extensions=docker-image://localhost:5000/extensions:latest
           build-args: |
             PACKAGE=${{ matrix.package }}
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
@@ -171,8 +143,6 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: firmware
-          build-contexts: |
-            extensions=docker-image://localhost:5000/extensions:latest
           build-args: |
             PACKAGE=${{ matrix.package }}
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
@@ -228,8 +198,6 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/arm64/v8
           target: rootfs
-          build-contexts: |
-            extensions=docker-image://localhost:5000/extensions:latest
           build-args: |
             PACKAGE=${{ matrix.package }}
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
