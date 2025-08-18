@@ -2,22 +2,19 @@
 FROM debian:stable AS build
 
 RUN apt-get update \
-        && apt-get install -y squashfs-tools \
+        && apt-get install -y squashfs-tools make \
         && apt-get clean
 
 ARG TCZ
-COPY extension /extension
-RUN mksquashfs extension /${TCZ} -all-root -noappend
+WORKDIR /${TCZ}
+COPY Makefile .
+COPY extension extension
 
-WORKDIR /
-RUN unsquashfs -lc ${TCZ} | sed 's|^squashfs-root/||' > ${TCZ}.list
-RUN md5sum ${TCZ} > ${TCZ}.md5.txt
+RUN make OUTPUT_DIR=/tcz
 
 
 FROM scratch AS export
 
 ARG TCZ
 
-COPY --from=build /${TCZ} /
-COPY --from=build /${TCZ}.list /
-COPY --from=build /${TCZ}.md5.txt /
+COPY --from=build /tcz/* /
