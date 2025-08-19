@@ -1,6 +1,8 @@
 #!/bin/sh
 
-DEVICES="ttyAMA0"
+source /etc/init.d/tc-functions
+
+DEVICES="$(getbootparam 'getty')" || DEVICES="serial0"
 
 for DEVICE in $DEVICES
 do
