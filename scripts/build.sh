@@ -18,4 +18,4 @@ docker build --platform=${PLATFORM} --target=${TARGET} \
     --build-arg PICORE_VERSION_MINOR=${PICORE_VERSION_MINOR} \
     --build-arg PICORE_VERSION_MICRO=${PICORE_VERSION_MICRO} \
     -t ${IMAGE} \
-    -f docker/Dockerfile .
+    -f docker/Dockerfile "$@" .
