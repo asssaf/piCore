@@ -98,7 +98,7 @@ FROM scratch AS tce
 COPY --from=install /etc/sysconfig/tcedir /tce
 
 
-FROM scratch AS firmware
+FROM scratch AS firmware-with-tce
 
 COPY --from=extract /fat /
 COPY --from=tce /tce /tce
@@ -111,3 +111,31 @@ ARG PICORE_VERSION_MAJOR
 ARG PICORE_VERSION_MINOR
 
 COPY --from=extract /fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz /
+
+
+FROM debian:bookworm AS build-images
+
+
+RUN apt update
+RUN apt install -y mtools parted
+RUN apt install -y 7zip
+
+COPY --from=extract 0.fat firmware-with-tce.img
+COPY --from=install /etc/sysconfig/tcedir /tce
+
+RUN mcopy -spQnmvi firmware-with-tce.img tce ::/tce
+RUN mlabel -ni firmware-with-tce.img ::RECOVERY
+
+RUN truncate -s 100M firmware-with-tce-disk.img
+RUN parted -s firmware-with-tce-disk.img mklabel msdos mkpart primary fat16 2048s 100%
+RUN dd if="firmware-with-tce.img" of=firmware-with-tce-disk.img bs=512 seek=2048
+
+
+FROM scratch AS firmware-with-tce-image
+
+COPY --from=build-images /firmware-with-tce.img /
+
+
+FROM scratch AS firmware-with-tce-disk-image
+
+COPY --from=build-images /firmware-with-tce-disk.img /
