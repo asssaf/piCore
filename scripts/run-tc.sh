@@ -12,7 +12,7 @@ set -euxo pipefail
 KERNEL="${BASE}/Image-${KERNEL_VERSION}"
 INITRD="${BASE}/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz"
 IMAGE="${BASE}/firmware-with-tce-disk.img"
-CMDLINE="console=ttyAMA0,115200 console=ttyGS0,115200 text root=/dev/ram0 nortc rootwait loglevel=3 tce=vda1 debug=y nozswap"
+CMDLINE="console=ttyAMA0,115200 console=ttyGS0,115200 text root=/dev/ram0 nortc rootwait loglevel=3 tce=LABEL=RECOVERY debug=y nozswap"
 qemu-system-aarch64 -machine virt -cpu cortex-a72 -smp 2 -m 1G \
 	-kernel "$KERNEL" -append "$CMDLINE" \
 	-initrd "$INITRD" \
