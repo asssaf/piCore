@@ -36,6 +36,14 @@ RUN ( cd rootfs \
         && $_7Z x etc/sysconfig/tcedir/optional/openssl.tcz \
         && $_7Z x etc/sysconfig/tcedir/optional/ca-certificates.tcz )
 
+# customize config.txt and cmdline.txt
+COPY config.txt.extra /
+RUN cat config.txt.extra >> /fat/config.txt
+RUN sed -i /fat/cmdline.txt \
+	-e 's| console=tty1 | console=ttyAMA0,115200 console=ttyGS0,115200 |' \
+	-e 's| quiet | |' \
+	-e 's|$| tce=LABEL=RECOVERY|'
+
 
 FROM debian:bookworm AS extensions
 
