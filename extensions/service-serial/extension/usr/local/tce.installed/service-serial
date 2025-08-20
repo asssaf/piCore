@@ -1,0 +1,31 @@
+#!/bin/sh
+
+function run_service() {
+	local DEVICE="$1"
+	local BASE="/usr/local/etc/init.d/services"
+	local SERVICE="service-serial"
+	local SERVICE_DIR="${BASE}/${SERVICE}"
+	local SERVICE_DEVICE="${SERVICE}.${DEVICE}"
+	local SERVICE_DEVICE_DIR="${BASE}/${SERVICE_DEVICE}"
+
+	mkdir -p "${SERVICE_DEVICE_DIR}/log"
+	ln -s "${SERVICE_DIR}/log/run" "${SERVICE_DEVICE_DIR}/log/run"
+	ln -s "${SERVICE_DIR}/run" "${SERVICE_DEVICE_DIR}/run"
+
+	runsv "${SERVICE_DEVICE_DIR}" &
+}
+
+
+cmdline="$(cat /proc/cmdline)"
+
+for i in $cmdline
+do
+        case $i in
+                console=*)
+			console=${i#*=}
+			device=${console%%,*}
+
+			grep -q "^${device}:" /etc/inittab || run_service $device
+		;;
+	esac
+done

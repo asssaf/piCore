@@ -1,0 +1,18 @@
+
+
+
+## Extra Settings ##
+
+[all]
+dtoverlay=dwc2
+uart_2ndstage=1
+
+
+[PI0]
+dtoverlay=disable-bt    # for serial console
+
+[PI02]
+dtoverlay=disable-bt    # for serial console
+
+[PI5]
+dtparam=uart0_console   # Enable UART0/ttyAMA0 on GPIO 14 & 15 and make it the console UART
