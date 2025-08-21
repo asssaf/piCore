@@ -70,7 +70,7 @@ ARG KERNEL=6.12.25-piCore-v8
 
 RUN rm /bin/uname && echo -e "#!/bin/sh\necho $KERNEL" > /bin/uname && chmod +x /bin/uname
 
-RUN for EXT in net-usb-KERNEL usb-serial-KERNEL usb-gadget-KERNEL; \
+RUN for EXT in net-usb-KERNEL usb-serial-KERNEL usb-gadget-KERNEL wpa_supplicant wireless_tools wireless-KERNEL firmware-rpi-wifi; \
         do \
                 su -l tc -c "tce-load -w $EXT" \
                 && echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
@@ -89,8 +89,12 @@ RUN ( \
 )
 
 COPY --from=extensions /tcz/* /etc/sysconfig/tcedir/optional/
-RUN echo "service-serial.tcz" >> /etc/sysconfig/tcedir/onboot.lst
-
+RUN ( \
+	for EXT in service-serial service-wifi service-dhcp; \
+	do \
+		echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
+	done \
+)
 
 RUN ln -s /etc/sysconfig/tcedir/ /mnt/nfs
 RUN filetool.sh -b nfs || cat /tmp/backup_status

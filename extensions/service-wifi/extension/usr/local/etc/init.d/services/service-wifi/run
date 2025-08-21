@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -eu
+
+exec 2>&1
+
+SERVICE_DIR="$( cd "$(dirname $0)" && echo ${PWD} )"
+SERVICE_NAME="${SERVICE_DIR##*/}"
+DEVICE="${SERVICE_NAME##*.}"
+
+CONF="/etc/sysconfig/tcedir/../wpa_supplicant.conf"
+
+while [ ! -f "$CONF" ]
+do
+	echo "Waiting for ${CONF}..."
+	sleep 5
+done
+
+
+while ! grep -q $DEVICE /proc/net/dev
+do
+	echo "Waiting for ${DEVICE}..."
+	sleep 5
+done
+
+echo "Starting wpa_supplicant for ${DEVICE}"
+
+
+exec wpa_supplicant -i "$DEVICE" -O "/var/run/wpa_supplicant.${DEVICE}" -c "$CONF"

@@ -1,5 +1,5 @@
 OUTPUT_DIR := ../build
-SUBDIRS = service-serial
+SUBDIRS = service-serial service-wifi service-dhcp
 
 all: $(SUBDIRS)
 
