@@ -16,3 +16,4 @@ dtoverlay=disable-bt    # for serial console
 
 [PI5]
 dtparam=uart0_console   # Enable UART0/ttyAMA0 on GPIO 14 & 15 and make it the console UART
+kernel=kernel6647v8.img	# use 4k kernel
