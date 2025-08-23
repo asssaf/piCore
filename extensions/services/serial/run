@@ -1,9 +1,0 @@
-#!/bin/sh
-
-set -eu
-
-exec 2>&1
-
-echo "Starting"
-
-exec /sbin/getty -L /dev/ttyAMA0 115200 vt100
