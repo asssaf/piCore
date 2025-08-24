@@ -27,13 +27,15 @@ CHANNEL="$(iw dev $DEVICE info | grep channel | awk '{print $2}')"
 
 echo "${DEVICE} is using channel ${CHANNEL}"
 
+ADDR="$(iw dev wlan0 info | awk '/addr/ {gsub(/:/, "");print $2}')"
+
 # run hostapd
-cat > /usr/local/etc/hostapd.conf <<HOSTAPDCONF
-ctrl_interface=/var/run/hostapd
+cat > /usr/local/etc/hostapd-${DEVICE}.conf <<HOSTAPDCONF
+ctrl_interface=/var/run/hostapd-${DEVICE}
 ctrl_interface_group=0
 interface=ap0
 driver=nl80211
-ssid=test
+ssid=test-${ADDR}
 hw_mode=g
 # channel should match what wpa_supplicant is using
 channel=$CHANNEL
@@ -47,4 +49,4 @@ wpa_pairwise=TKIP CCMP
 rsn_pairwise=CCMP
 HOSTAPDCONF
 
-exec hostapd /usr/local/etc/hostapd.conf
+exec hostapd /usr/local/etc/hostapd-${DEVICE}.conf
