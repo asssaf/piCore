@@ -1,0 +1,36 @@
+#!/bin/sh
+
+set -eu
+
+exec 2>&1
+
+SERVICE_DIR="$( cd "$(dirname $0)" && echo ${PWD} )"
+SERVICE_NAME="${SERVICE_DIR##*/}"
+DEVICE="${SERVICE_NAME##*.}"
+
+
+while ! grep -q "${DEVICE}:" /proc/net/dev
+do
+        echo "Waiting for ${DEVICE}..."
+        sleep 5
+done
+
+
+echo "Starting dhcp server for ${DEVICE}"
+
+ifconfig $DEVICE 192.168.52.1 netmask 255.255.255.0 broadcast 192.168.52.255 up
+
+cat > "/usr/local/etc/udhcpd-${DEVICE}.conf" <<DHCPCONF
+start 192.168.52.100
+end 192.168.52.200
+interface $DEVICE
+lease_file /var/run/udhcpd-${DEVICE}.leases
+option subnet 255.255.255.0
+option router 192.168.52.1
+option lease 43200
+#option dns 192.168.52.1
+option dns 8.8.8.8
+option domain local
+DHCPCONF
+
+exec udhcpd -f "/usr/local/etc/udhcpd-${DEVICE}.conf"
