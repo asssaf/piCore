@@ -16,4 +16,9 @@ function run_service() {
 }
 
 
-run_service wlan0
+DEVICES="wlan0"
+
+for DEVICE in $DEVICES
+do
+	run_service $DEVICE
+done
