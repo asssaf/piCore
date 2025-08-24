@@ -8,6 +8,14 @@ SERVICE_DIR="$( cd "$(dirname $0)" && echo ${PWD} )"
 SERVICE_NAME="${SERVICE_DIR##*/}"
 DEVICE="${SERVICE_NAME##*.}"
 
+
+while ! grep -q "${DEVICE}:" /proc/net/dev
+do
+        echo "Waiting for ${DEVICE}..."
+        sleep 5
+done
+
+
 echo "Starting dhcp client for ${DEVICE}"
 
 exec /sbin/udhcpc -f -i "$DEVICE" -x hostname:$(/bin/hostname)
