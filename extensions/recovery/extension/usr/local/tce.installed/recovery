@@ -1,0 +1,3 @@
+#!/bin/sh
+
+runsv /usr/local/etc/init.d/services/recovery &

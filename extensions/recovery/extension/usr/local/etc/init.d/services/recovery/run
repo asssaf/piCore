@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -eu
+
+exec 2>&1
+
+BOOT="/etc/sysconfig/tcedir/../bootattempt"
+DELAY=30
+
+while [ -e "$BOOT" ]
+do
+	echo "Previous boot failed - remove $BOOT to continue"
+	sleep 5
+done
+
+echo "Booting second partition in $DELAY seconds ..."
+sleep $DELAY
+touch "$BOOT"
+sync
+tryboot "2"
+sleep $DELAY

@@ -27,6 +27,7 @@ RUN ( mkdir rootfs \
         && zcat ../fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz | cpio -idv )
 
 RUN $_7Z x 1.img
+RUN touch /tce/copy2fs.flg
 RUN mv /tce rootfs/etc/sysconfig/tcedir
 
 RUN ( cd rootfs \
@@ -90,7 +91,7 @@ RUN ( \
 
 COPY --from=extensions /tcz/* /etc/sysconfig/tcedir/optional/
 RUN ( \
-	for EXT in service-serial service-wifi service-dhcp service-dhcpd hostapd; \
+	for EXT in service-serial service-wifi service-dhcp service-dhcpd service-hostapd recovery; \
 	do \
 		echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
 	done \

@@ -1,5 +1,5 @@
 OUTPUT_DIR := ../build
-SUBDIRS = service-serial service-wifi service-dhcp
+SUBDIRS = service-serial service-wifi service-dhcp service-dhcpd service-hostapd recovery
 
 all: $(SUBDIRS)
 
