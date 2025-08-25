@@ -27,6 +27,7 @@ RUN ( mkdir rootfs \
         && zcat ../fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz | cpio -idv )
 
 RUN $_7Z x 1.img
+RUN touch /tce/copy2fs.flg
 RUN mv /tce rootfs/etc/sysconfig/tcedir
 
 RUN ( cd rootfs \
