@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -eu
+
+LOG_DIR="$( cd "$(dirname $0)/.." && echo ${PWD} )"
+SERVICE_DIR="${LOG_DIR%/log}"
+SERVICE_NAME="${SERVICE_DIR##*/}"
+
+mkdir -p "/var/log/${SERVICE_NAME}"
+exec svlogd -ttt "/var/log/${SERVICE_NAME}"
