@@ -16,7 +16,7 @@ function run_service() {
 }
 
 
-DEVICES="ap0"
+DEVICES="ap0 usb0"
 
 for DEVICE in $DEVICES
 do
