@@ -106,7 +106,6 @@ function start() {
 	create_ethernet_function
 	enable
 	sv up /usr/local/etc/init.d/services/service-serial.ttyGS0
-	ifconfig usb0 192.168.42.1
 }
 
 
