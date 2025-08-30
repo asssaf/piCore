@@ -91,7 +91,7 @@ RUN ( \
 
 COPY --from=extensions /tcz/* /etc/sysconfig/tcedir/optional/
 RUN ( \
-	for EXT in service-serial service-wifi service-dhcp service-dhcpd service-hostapd recovery; \
+	for EXT in service-serial service-wifi service-dhcp service-dhcpd service-hostapd recovery service-gadget; \
 	do \
 		echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
 	done \
