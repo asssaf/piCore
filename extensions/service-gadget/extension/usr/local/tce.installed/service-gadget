@@ -1,0 +1,7 @@
+#!/bin/sh
+
+BASE="/usr/local/etc/init.d/services"
+SERVICE="service-gadget"
+SERVICE_DIR="${BASE}/${SERVICE}"
+
+runsv "${SERVICE_DIR}" &
