@@ -1,0 +1,12 @@
+#!/bin/sh
+
+function run_service() {
+        local DEVICE="$1"
+        local BASE="/usr/local/etc/init.d/services"
+        local SERVICE="firewall"
+        local SERVICE_DIR="${BASE}/${SERVICE}"
+
+	"${SERVICE_DIR}/service" start
+}
+
+run_service

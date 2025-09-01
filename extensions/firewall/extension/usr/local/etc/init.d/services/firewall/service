@@ -1,0 +1,64 @@
+#!/bin/sh
+
+set -eu
+
+
+function start() {
+	## Enable routing and NAT masquerade
+	sysctl -w net.ipv4.ip_forward=1
+
+
+	# allow established connections, pings, ack, etc.
+	iptables --insert INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+	# allow local traffic
+	iptables --append INPUT -i lo -j ACCEPT
+
+	# allow incoming ssh
+	iptables --append INPUT -m conntrack --ctstate NEW -p tcp --dport 22 -j ACCEPT
+
+	# drop other incoming packets
+	iptables --append INPUT -j DROP
+
+	# block forwarding unless it's an established connection
+	iptables --append FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+	iptables --append FORWARD -j DROP
+}
+
+
+function stop() {
+	iptables --delete FORWARD -j DROP
+	iptables --delete FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+	iptables --delete INPUT -j DROP
+	iptables --delete INPUT -m conntrack --ctstate NEW -p tcp --dport 22 -j ACCEPT
+	iptables --delete INPUT -i lo -j ACCEPT
+	iptables --delete INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+	sysctl -w net.ipv4.ip_forward=0
+}
+
+
+function nat_start() {
+	DEVICE="$1"
+
+        # enable nat masquerade
+	iptables --table nat --append POSTROUTING --out-interface $DEVICE -j MASQUERADE
+	iptables --insert FORWARD -m conntrack --ctstate NEW --out-interface $DEVICE -j ACCEPT
+}
+
+
+function nat_stop() {
+	DEVICE="$1"
+
+	iptables --delete FORWARD -m conntrack --ctstate NEW --out-interface $DEVICE -j ACCEPT
+	iptables --table nat --delete POSTROUTING --out-interface $DEVICE -j MASQUERADE
+}
+
+
+case $1 in
+	start|stop|nat_start|nat_stop)
+		"$@"
+		;;
+	*)
+		echo "Invalid command: $1"
+		;;
+esac
