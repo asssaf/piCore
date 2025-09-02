@@ -328,7 +328,7 @@ jobs:
           path: "${{github.workspace}}"
 
       - name: run
-        timeout-minutes: 5
+        timeout-minutes: 10
         env:
           PACKAGE: "${{matrix.package}}"
         run: |
