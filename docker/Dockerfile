@@ -38,6 +38,8 @@ RUN ( cd rootfs \
         && $_7Z x etc/sysconfig/tcedir/optional/ca-certificates.tcz )
 
 # customize config.txt and cmdline.txt
+RUN sed -i /fat/config.txt \
+	-e 's|-16k||g'		# use 4k kernel
 COPY config.txt.extra /
 RUN cat config.txt.extra >> /fat/config.txt
 RUN sed -i /fat/cmdline.txt \
