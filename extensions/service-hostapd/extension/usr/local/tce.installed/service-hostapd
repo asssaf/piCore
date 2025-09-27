@@ -11,6 +11,7 @@ function run_service() {
 	mkdir -p "${SERVICE_DEVICE_DIR}/log"
 	ln -s "${SERVICE_DIR}/log/run" "${SERVICE_DEVICE_DIR}/log/run"
 	ln -s "${SERVICE_DIR}/run" "${SERVICE_DEVICE_DIR}/run"
+	ln -s "${SERVICE_DIR}/finish" "${SERVICE_DEVICE_DIR}/finish"
 
 	runsv "${SERVICE_DEVICE_DIR}" &
 }
