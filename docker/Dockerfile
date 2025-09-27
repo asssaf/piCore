@@ -82,7 +82,7 @@ RUN for EXT in net-usb-KERNEL usb-serial-KERNEL usb-gadget-KERNEL wpa_supplicant
 # install external extensions
 RUN ( \
         TCEMIRROR="$(cat /opt/tcemirror)"; \
-        for EXT in tryboot busybox-system; \
+        for EXT in tryboot busybox-system watchdog; \
         do \
                 echo "https://github.com/asssaf/picore-${EXT}/raw/refs/heads/tcz-v0.0.1" > /opt/tcemirror \
                 && su -l tc -c "tce-load -w $EXT" \
@@ -93,7 +93,7 @@ RUN ( \
 
 COPY --from=extensions /tcz/* /etc/sysconfig/tcedir/optional/
 RUN ( \
-	for EXT in service-serial service-wifi service-dhcp service-dhcpd service-hostapd recovery service-gadget firewall; \
+	for EXT in service-serial service-wifi service-dhcp service-dhcpd service-hostapd recovery service-gadget firewall service-watchdog; \
 	do \
 		echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
 	done \
