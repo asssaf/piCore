@@ -17,6 +17,9 @@ function start() {
 	# allow incoming ssh
 	iptables --append INPUT -m conntrack --ctstate NEW -p tcp --dport 22 -j ACCEPT
 
+	# allow ping (ICMP echo)
+	iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+
 	# drop other incoming packets
 	iptables --append INPUT -j DROP
 
