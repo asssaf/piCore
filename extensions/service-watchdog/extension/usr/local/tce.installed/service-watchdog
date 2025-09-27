@@ -1,0 +1,11 @@
+#!/bin/sh
+
+function run_service() {
+	local BASE="/usr/local/etc/init.d/services"
+	local SERVICE="service-watchdog"
+	local SERVICE_DIR="${BASE}/${SERVICE}"
+
+	runsv "${SERVICE_DIR}" &
+}
+
+run_service

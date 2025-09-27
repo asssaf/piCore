@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -eu
+
+exec 2>&1
+
+SERVICE_DIR="$( cd "$(dirname $0)" && echo ${PWD} )"
+SERVICE_NAME="${SERVICE_DIR##*/}"
+
+CONF="/etc/sysconfig/tcedir/../watchdog.conf"
+WATCHDOG="/usr/local/sbin/wd_watchdog"
+WATCHDOG_DEV="/dev/watchdog"
+
+while [ ! -r "${CONF}" ]
+do
+        echo "Waiting for ${CONF}"
+        sleep 5
+done
+
+while [ ! -e "${WATCHDOG_DEV}" ]
+do
+	echo "Waiting for ${WATCHDOG_DEV}"
+	sleep 5
+done
+
+
+echo "Starting watchdog"
+
+exec "$WATCHDOG" -F -c "$CONF"
