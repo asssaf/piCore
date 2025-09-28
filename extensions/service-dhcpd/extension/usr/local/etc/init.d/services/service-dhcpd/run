@@ -46,4 +46,5 @@ option dns 8.8.8.8
 option domain local
 DHCPCONF
 
+touch "/var/run/udhcpd-${DEVICE}.leases"
 exec udhcpd -f "/usr/local/etc/udhcpd-${DEVICE}.conf"
