@@ -45,7 +45,7 @@ RUN cat config.txt.extra >> /fat/config.txt
 RUN sed -i /fat/cmdline.txt \
 	-e 's| console=tty1 | console=ttyAMA0,115200 console=ttyGS0,115200 |' \
 	-e 's| quiet | |' \
-	-e 's|$| tce=LABEL=RECOVERY|'
+	-e 's|$| tce=LABEL=RECOVERY tz=PST+8PDT,M3.2.0/2,M11.1.0/2|'
 
 
 FROM debian:bookworm AS extensions
