@@ -18,7 +18,11 @@ function start() {
 	iptables --append INPUT -m conntrack --ctstate NEW -p tcp --dport 22 -j ACCEPT
 
 	# allow ping (ICMP echo)
-	iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+	iptables --append INPUT -p icmp --icmp-type echo-request -j ACCEPT
+
+	# allow dhcp requests from clients
+	iptables --append INPUT -i ap0 -p udp --sport 68 --dport 67 -j ACCEPT
+	iptables --append INPUT -i usb0 -p udp --sport 68 --dport 67 -j ACCEPT
 
 	# drop other incoming packets
 	iptables --append INPUT -j DROP
@@ -33,6 +37,9 @@ function stop() {
 	iptables --delete FORWARD -j DROP
 	iptables --delete FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 	iptables --delete INPUT -j DROP
+	iptables --delete INPUT -i ap0 -p udp --sport 68 --dport 67 -j ACCEPT
+	iptables --delete INPUT -i usb0 -p udp --sport 68 --dport 67 -j ACCEPT
+	iptables --delete INPUT -p icmp --icmp-type echo-request -j ACCEPT
 	iptables --delete INPUT -m conntrack --ctstate NEW -p tcp --dport 22 -j ACCEPT
 	iptables --delete INPUT -i lo -j ACCEPT
 	iptables --delete INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
