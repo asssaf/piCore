@@ -156,4 +156,5 @@ COPY --from=build-images /firmware-with-tce.img /
 
 FROM scratch AS firmware-with-tce-disk-image
 
-COPY --from=build-images /firmware-with-tce-disk.img /
+ARG PACKAGE
+COPY --from=build-images /firmware-with-tce-disk.img /firmware-with-tce-disk-${PACKAGE}.img
