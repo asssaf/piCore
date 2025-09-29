@@ -137,8 +137,11 @@ RUN apt install -y 7zip
 
 COPY --from=extract 0.fat firmware-with-tce.img
 COPY --from=install /etc/sysconfig/tcedir /tce
+COPY --from=firmware-with-tce /config.txt /
+COPY --from=firmware-with-tce /cmdline.txt /
 
 RUN mcopy -spQnmvi firmware-with-tce.img tce ::/tce
+RUN mcopy -spQnmovi firmware-with-tce.img /config.txt /cmdline.txt ::/ 2>&1
 RUN mlabel -ni firmware-with-tce.img ::RECOVERY
 
 RUN truncate -s 100M firmware-with-tce-disk.img
