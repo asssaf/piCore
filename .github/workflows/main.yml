@@ -170,13 +170,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: "type=local,dest=${{github.workspace}}/artifacts/firmware-with-tce-disk.img"
+          outputs: "type=local,dest=${{github.workspace}}/artifacts/firmware-with-tce-disk-${{matrix.package}}.img"
 
       - name: upload firmware with tce disk image
         uses: actions/upload-artifact@v4
         with:
           name: firmware-with-tce-disk-${{matrix.package}}.img
-          path: "${{github.workspace}}/artifacts/firmware-with-tce-disk.img"
+          path: "${{github.workspace}}/artifacts/firmware-with-tce-disk-${{matrix.package}}.img"
 
       - name: Export rootfs
         uses: docker/build-push-action@v6
