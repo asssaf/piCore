@@ -6,16 +6,50 @@ exec 2>&1
 
 BOOT="/etc/sysconfig/tcedir/../bootattempt"
 DELAY=30
+MAX_ATTEMPTS=2
 
-while [ -e "$BOOT" ]
+cmdline="$(cat /proc/cmdline)"
+
+for i in $cmdline
 do
-	echo "Previous boot failed - remove $BOOT to continue"
-	sleep 5
+        case $i in
+                recovery=*)
+                        MAX_ATTEMPTS=${i#*=}
+                ;;
+        esac
 done
 
-echo "Booting second partition in $DELAY seconds ..."
-sleep $DELAY
-touch "$BOOT"
-sync
-tryboot "2"
-sleep $DELAY
+
+loop() {
+	if [ ! -e "${BOOT}" ]
+	then
+		echo "${BOOT} doesn't exist - create it to start recovery auto boot"
+		return 0
+	fi
+
+	ATTEMPT="$(cat "$BOOT")"
+	case "$ATTEMPT" in
+		''|*[!0-9]*) ATTEMPT=0 ;;
+	esac
+
+	if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]
+	then
+		echo "${ATTEMPT} boot attempt(s) failed, ${MAX_ATTEMPTS} allowed - write 0 to ${BOOT} to restart"
+		return 0
+	fi
+
+	ACTUAL_DELAY="$(($DELAY*2**${ATTEMPT}))"
+	echo "Booting second partition in $ACTUAL_DELAY seconds ..."
+	sleep $ACTUAL_DELAY
+	echo "$((ATTEMPT+1))" > "$BOOT"
+	sync
+	echo "Booting now..."
+	tryboot "2"
+	sleep $DELAY
+}
+
+while true
+do
+	loop
+	sleep 5
+done
