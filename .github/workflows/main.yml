@@ -9,7 +9,6 @@ on:
   workflow_dispatch:
 
 env:
-  KERNEL_FAMILY: 6.x
   KERNEL_VERSION: 6.12.25
   PICORE_VERSION_MAJOR: 16
   PICORE_VERSION_MINOR: 0
@@ -202,104 +201,13 @@ jobs:
           name: rootfs-${{matrix.package}}
           path: "${{github.workspace}}/artifacts/rootfs-${{matrix.package}}-${{env.PICORE_VERSION_MAJOR}}.${{env.PICORE_VERSION_MINOR}}.gz"
 
-  build-kernel-qemu:
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - name: 'Login to GitHub Container Registry'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{github.actor}}
-          password: ${{secrets.GITHUB_TOKEN}}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/asssaf/picore-kernel-qemu
-          tags: "type=raw,value=${{ env.TAG }},priority=2000"
-
-      - name: build deps
-        if: false
-        uses: docker/build-push-action@v6
-        with:
-          file: docker/Dockerfile.kernel-qemu
-          platforms: linux/arm64/v8
-          target: deps
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: build kernel
-        if: false
-        uses: docker/build-push-action@v6
-        with:
-          file: docker/Dockerfile.kernel-qemu
-          platforms: linux/arm64/v8
-          target: build
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: output kernel
-        uses: docker/build-push-action@v6
-        with:
-          file: docker/Dockerfile.kernel-qemu
-          platforms: linux/arm64/v8
-          target: kernel
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: "type=local,dest=${{github.workspace}}/artifacts"
-
-      - name: upload kernel for qemu
-        uses: actions/upload-artifact@v4
-        with:
-          name: kernel8-qemu-${{ env.KERNEL_VERSION }}
-          path: "${{github.workspace}}/artifacts/Image-${{ env.KERNEL_VERSION }}"
-
-      - name: upload config for qemu
-        uses: actions/upload-artifact@v4
-        with:
-          name: config-kernel8-qemu-${{ env.KERNEL_VERSION }}
-          path: "${{github.workspace}}/artifacts/config-${{ env.KERNEL_VERSION }}"
-
-      - name: output modules
-        if: false
-        uses: docker/build-push-action@v6
-        with:
-          file: docker/Dockerfile.kernel-qemu
-          platforms: linux/arm64/v8
-          target: modules
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: "type=tar,dest=${{github.workspace}}/artifacts/modules-${{ env.KERNEL_VERSION }}.tar"
-
-      - name: upload modules for qemu
-        if: false
-        uses: actions/upload-artifact@v4
-        with:
-          name: modules-qemu-${{ env.KERNEL_VERSION }}
-          path: "${{github.workspace}}/artifacts/modules-${{ env.KERNEL_VERSION }}.tar"
 
   test:
     strategy:
       matrix:
         package: [piCore, piCore64]
     runs-on: ubuntu-24.04
-    needs: [build, build-kernel-qemu]
+    needs: [build]
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -308,12 +216,6 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y qemu-system-arm
-
-      - name: download-kernel
-        uses: actions/download-artifact@v4
-        with:
-          name: kernel8-qemu-${{ env.KERNEL_VERSION }}
-          path: "${{github.workspace}}"
 
       - name: download-tce-disk
         uses: actions/download-artifact@v4
@@ -333,6 +235,9 @@ jobs:
           PACKAGE: "${{matrix.package}}"
         run: |
           set -euxo pipefail
+
+          docker create --name rpi-kernel --platform linux/arm64/v8 ghcr.io/asssaf/rpi-kernel:${{ env.KERNEL_VERSION }}-default true
+          docker cp rpi-kernel:/Image-${{ env.KERNEL_VERSION }} .
 
           scripts/run-tc.sh |& tee qemu.out &
 
