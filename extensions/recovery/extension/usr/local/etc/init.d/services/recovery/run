@@ -4,48 +4,59 @@ set -eu
 
 exec 2>&1
 
-BOOT="/etc/sysconfig/tcedir/../bootattempt"
-DELAY=30
-MAX_ATTEMPTS=2
+file="/etc/sysconfig/tcedir/../bootattempt"
+delay=30
+max_attempts=2
+partition=2
 
 cmdline="$(cat /proc/cmdline)"
 
 for i in $cmdline
 do
-        case $i in
-                recovery=*)
-                        MAX_ATTEMPTS=${i#*=}
-                ;;
-        esac
+	case $i in
+		recovery.*=*)
+			j=${i#*.}
+			param=${j%=*}
+			value=${j#*=}
+			case $param in
+				file|delay|max_attempts|partition)
+					eval "${param}=\"${value}\""
+					;;
+				*)
+					echo "Unexpected param: recovery.$param"
+					;;
+			esac
+			;;
+	esac
 done
 
 
 loop() {
-	if [ ! -e "${BOOT}" ]
+	if [ ! -e "${file}" ]
 	then
-		echo "${BOOT} doesn't exist - create it to start recovery auto boot"
+		echo "${file} doesn't exist - create it to start recovery auto boot"
 		return 0
 	fi
 
-	ATTEMPT="$(cat "$BOOT")"
+	ATTEMPT="$(cat "$file")"
 	case "$ATTEMPT" in
 		''|*[!0-9]*) ATTEMPT=0 ;;
 	esac
 
-	if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]
+	if [ "$ATTEMPT" -ge "$max_attempts" ]
 	then
-		echo "${ATTEMPT} boot attempt(s) failed, ${MAX_ATTEMPTS} allowed - write 0 to ${BOOT} to restart"
+		echo "${ATTEMPT} boot attempt(s) failed, ${max_attempts} allowed - write 0 to ${file} to restart"
 		return 0
 	fi
 
-	ACTUAL_DELAY="$(($DELAY*2**${ATTEMPT}))"
-	echo "Booting second partition in $ACTUAL_DELAY seconds ..."
+	ACTUAL_DELAY="$(($delay*2**${ATTEMPT}))"
+	echo "Booting partition $partition in $ACTUAL_DELAY seconds ..."
 	sleep $ACTUAL_DELAY
-	echo "$((ATTEMPT+1))" > "$BOOT"
+	echo "$((ATTEMPT+1))" > "$file"
 	sync
 	echo "Booting now..."
-	tryboot "2"
-	sleep $DELAY
+	tryboot "$partition"
+	sleep $delay
 }
 
 while true
