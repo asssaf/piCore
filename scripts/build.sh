@@ -9,6 +9,7 @@ set -eux
 : ${PLATFORM:=linux/arm64/v8}
 : ${TARGET:=install}
 : ${IMAGE:=asssaf/picore}
+: ${TCEMIRROR:=}
 
 #docker run --privileged --rm tonistiigi/binfmt --install arm64
 
@@ -17,5 +18,6 @@ docker build --platform=${PLATFORM} --target=${TARGET} \
     --build-arg PICORE_VERSION_MAJOR=${PICORE_VERSION_MAJOR} \
     --build-arg PICORE_VERSION_MINOR=${PICORE_VERSION_MINOR} \
     --build-arg PICORE_VERSION_MICRO=${PICORE_VERSION_MICRO} \
+    --build-arg TCEMIRROR=${TCEMIRROR} \
     -t ${IMAGE} \
     -f docker/Dockerfile "$@" .
