@@ -53,6 +53,7 @@ jobs:
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
             PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
             PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
+            TCEMIRROR=${{ secrets.TCEMIRROR }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -70,6 +71,7 @@ jobs:
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
             PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
             PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
+            TCEMIRROR=${{ secrets.TCEMIRROR }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -94,6 +96,7 @@ jobs:
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
             PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
             PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
+            TCEMIRROR=${{ secrets.TCEMIRROR }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -118,6 +121,7 @@ jobs:
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
             PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
             PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
+            TCEMIRROR=${{ secrets.TCEMIRROR }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -142,6 +146,7 @@ jobs:
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
             PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
             PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
+            TCEMIRROR=${{ secrets.TCEMIRROR }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -166,6 +171,7 @@ jobs:
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
             PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
             PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
+            TCEMIRROR=${{ secrets.TCEMIRROR }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -190,6 +196,7 @@ jobs:
             PICORE_VERSION_MAJOR=${{ env.PICORE_VERSION_MAJOR }}
             PICORE_VERSION_MINOR=${{ env.PICORE_VERSION_MINOR }}
             PICORE_VERSION_MICRO=${{ env.PICORE_VERSION_MICRO }}
+            TCEMIRROR=${{ secrets.TCEMIRROR }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

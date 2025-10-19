@@ -73,27 +73,24 @@ ARG KERNEL=6.12.25-piCore-v8
 
 RUN rm /bin/uname && echo -e "#!/bin/sh\necho $KERNEL" > /bin/uname && chmod +x /bin/uname
 
-RUN for EXT in net-usb-KERNEL usb-serial-KERNEL usb-gadget-KERNEL wpa_supplicant wireless_tools wireless-KERNEL firmware-rpi-wifi iw hostapd iptables; \
+ARG TCEMIRROR
+RUN echo "$TCEMIRROR" > /opt/tcemirror
+
+ARG EXTENSIONS="net-usb-KERNEL usb-serial-KERNEL usb-gadget-KERNEL wpa_supplicant wireless_tools wireless-KERNEL \
+	firmware-rpi-wifi iw hostapd iptables tryboot busybox-system watchdog"
+
+RUN for EXT in $EXTENSIONS; \
         do \
                 su -l tc -c "tce-load -w $EXT" \
                 && echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
         done
 
-# install external extensions
-RUN ( \
-        TCEMIRROR="$(cat /opt/tcemirror)"; \
-        for EXT in tryboot busybox-system watchdog; \
-        do \
-                echo "https://github.com/asssaf/picore-${EXT}/raw/refs/heads/tcz-v0.0.1" > /opt/tcemirror \
-                && su -l tc -c "tce-load -w $EXT" \
-                && echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
-        done \
-        && echo "$TCEMIRROR" > /opt/tcemirror \
-)
-
 COPY --from=extensions /tcz/* /etc/sysconfig/tcedir/optional/
+ARG INTERNAL_EXTENSIONS="service-serial service-wifi service-dhcp service-dhcpd service-hostapd recovery \
+	service-gadget firewall service-watchdog"
+
 RUN ( \
-	for EXT in service-serial service-wifi service-dhcp service-dhcpd service-hostapd recovery service-gadget firewall service-watchdog; \
+	for EXT in $INTERNAL_EXTENSIONS; \
 	do \
 		echo "${EXT}.tcz" >> /etc/sysconfig/tcedir/onboot.lst ; \
 	done \
