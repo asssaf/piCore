@@ -8,9 +8,10 @@ set -euxo pipefail
 : ${PICORE_VERSION_MAJOR:=16}
 : ${PICORE_VERSION_MINOR=0}
 : ${PICORE_VERSION_MICRO=0}
+: ${ROOTFS_SUFFIX:=gz}
 
 KERNEL="${BASE}/Image-${KERNEL_VERSION}"
-INITRD="${BASE}/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz"
+INITRD="${BASE}/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.${ROOTFS_SUFFIX}"
 IMAGE="${BASE}/firmware-with-tce-disk-${PACKAGE}.img"
 CMDLINE="console=ttyAMA0,115200 console=ttyGS0,115200 text root=/dev/ram0 nortc rootwait loglevel=3 tce=LABEL=RECOVERY tz=PST+8PDT,M3.2.0/2,M11.1.0/2 debug=y nozswap"
 qemu-system-aarch64 -machine virt -cpu max -smp 4 -m 2G \
