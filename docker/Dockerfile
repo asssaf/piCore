@@ -7,15 +7,18 @@ ARG PACKAGE
 ARG PICORE_VERSION_MAJOR
 ARG PICORE_VERSION_MINOR
 ARG PICORE_VERSION_MICRO
+ARG PICORE_VERSION_RC
+ARG PICORE_SUFFIX
+ARG ROOTFS_SUFFIX
 ARG _7Z="7zz"
 
 ENV ARCH="${PACKAGE/*piCore64*/aarch64}"
 ENV ARCH="${ARCH/*piCore*/armhf}"
-ENV PACKAGE_VERSION="${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.${PICORE_VERSION_MICRO}"
+ENV PACKAGE_VERSION="${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.${PICORE_VERSION_MICRO}${PICORE_VERSION_RC}"
 
-RUN curl -sLo "/${PACKAGE_VERSION}.img.gz" "http://tinycorelinux.net/${PICORE_VERSION_MAJOR}.x/${ARCH}/release/RPi/${PACKAGE_VERSION}.img.gz"
+RUN curl -sLo "/${PACKAGE_VERSION}.${PICORE_SUFFIX}" "http://tinycorelinux.net/${PICORE_VERSION_MAJOR}.x/${ARCH}/release${PICORE_VERSION_RC:+_candidates}/RPi/${PACKAGE_VERSION}.${PICORE_SUFFIX}"
 
-RUN $_7Z x "${PACKAGE_VERSION}.img.gz"
+RUN $_7Z x "${PACKAGE_VERSION}.${PICORE_SUFFIX}"
 RUN $_7Z x "${PACKAGE_VERSION}.img"
 
 RUN ( mkdir fat \
@@ -24,7 +27,7 @@ RUN ( mkdir fat \
 
 RUN ( mkdir rootfs \
         && cd rootfs \
-        && zcat ../fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz | cpio -idv )
+        && $_7Z x -so ../fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.${ROOTFS_SUFFIX} | cpio -idv )
 
 RUN $_7Z x 1.img
 RUN touch /tce/copy2fs.flg
@@ -69,7 +72,7 @@ RUN chmod u+s /usr/bin/sudo
 
 RUN usr/local/tce.installed/ca-certificates
 
-ARG KERNEL=6.12.25-piCore-v8
+ARG KERNEL
 
 RUN rm /bin/uname && echo -e "#!/bin/sh\necho $KERNEL" > /bin/uname && chmod +x /bin/uname
 
@@ -121,8 +124,9 @@ FROM scratch AS rootfs
 ARG PACKAGE
 ARG PICORE_VERSION_MAJOR
 ARG PICORE_VERSION_MINOR
+ARG ROOTFS_SUFFIX
 
-COPY --from=extract /fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.gz /
+COPY --from=extract /fat/rootfs-${PACKAGE}-${PICORE_VERSION_MAJOR}.${PICORE_VERSION_MINOR}.${ROOTFS_SUFFIX} /
 
 
 FROM debian:bookworm AS build-images
