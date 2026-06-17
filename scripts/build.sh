@@ -11,7 +11,19 @@ set -eux
 : ${IMAGE:=asssaf/picore}
 : ${TCEMIRROR:=}
 
-#docker run --privileged --rm tonistiigi/binfmt --install arm64
+if [ "$(uname -m)" = "x86_64" ]
+then
+    #docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    # need "flags: F" in /proc/sys/fs/binfmt_misc/qemu-${arch} so the image can run without copying qemu into the guest image
+    if [ "$PACKAGE" = "piCore64" ]
+    then
+        BINFMT_PATH="/proc/sys/fs/binfmt_misc/qemu-aarch64"
+    else
+        BINFMT_PATH="/proc/sys/fs/binfmt_misc/qemu-arm"
+    fi
+
+    grep -q "flags: F" "$BINFMT_PATH" || { echo "need 'flags: F' in $BINFMT_PATH" >& 2; exit 1; }
+fi
 
 docker build --platform=${PLATFORM} --target=${TARGET} \
     --build-arg PACKAGE=${PACKAGE} \
