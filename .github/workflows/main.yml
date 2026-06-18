@@ -280,7 +280,7 @@ jobs:
           docker create --name rpi-kernel --platform linux/arm64/v8 ghcr.io/asssaf/rpi-kernel:${{ env.KERNEL_VERSION }}-default true
           docker cp rpi-kernel:/Image-${{ env.KERNEL_VERSION }} .
 
-          scripts/run-tc.sh |& tee qemu.out &
+          CPU="cortex-a72" SMP="2" MEM="1G" scripts/run-tc.sh |& tee qemu.out &
 
           until sshpass -p piCore ssh -o StrictHostKeychecking=no -p 2223 tc@127.0.0.1 echo hi
           do
