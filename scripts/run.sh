@@ -13,6 +13,7 @@ set -euxo pipefail
 : ${SSH_PORT:=2223}
 : ${TELNET_PORT:=5555}
 
+TMP_INITRD=""
 case ${INITRD} in
 	*" "*)
 		IFS=' ' read -r -a SPLIT_INITRD <<< "$INITRD"
@@ -31,7 +32,8 @@ qemu-system-aarch64 -machine virt -cpu ${CPU} -smp ${SMP} -m ${MEM} \
 	-device virtio-blk,drive=hd0,bootindex=0 \
 	-netdev user,id=mynet,hostfwd=tcp::${SSH_PORT}-:22 \
 	-device virtio-net-pci,netdev=mynet \
-	-monitor telnet:127.0.0.1:${TELNET_PORT},server,nowait
+	-monitor telnet:127.0.0.1:${TELNET_PORT},server,nowait \
+	-serial mon:stdio
 
 
 if [ -n "${TMP_INITRD}" ]
