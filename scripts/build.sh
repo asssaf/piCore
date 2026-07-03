@@ -26,7 +26,7 @@ then
         BINFMT_PATH="/proc/sys/fs/binfmt_misc/qemu-arm"
     fi
 
-    grep -q "flags: F" "$BINFMT_PATH" || { echo "need 'flags: F' in $BINFMT_PATH" >& 2; exit 1; }
+    grep -q "flags: .*F" "$BINFMT_PATH" || { echo "need 'flags: F' in $BINFMT_PATH" >& 2; exit 1; }
 fi
 
 docker build --platform=${PLATFORM} --target=${TARGET} \
