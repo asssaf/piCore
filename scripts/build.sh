@@ -5,15 +5,15 @@ set -eux
 : ${PACKAGE:=piCore64}
 : ${PICORE_VERSION_MAJOR:=17}
 : ${PICORE_VERSION_MINOR:=0}
-: ${PICORE_VERSION_MICRO:=0}
-: ${PICORE_VERSION_RC:=-beta1}
-: ${PICORE_SUFFIX:=zip}
+: ${PICORE_VERSION_MICRO:=}
+: ${PICORE_VERSION_RC:=}
+: ${PICORE_SUFFIX:=img.gz}
 : ${ROOTFS_SUFFIX:=zst}
 : ${PLATFORM:=linux/arm64/v8}
 : ${TARGET:=install}
 : ${IMAGE:=asssaf/picore}
 : ${TCEMIRROR:=}
-: ${KERNEL=6.18.28-piCore-v8}
+: ${KERNEL=6.18.37-piCore-v8}
 
 if [ "$(uname -m)" = "x86_64" ]
 then
