@@ -28,8 +28,7 @@ qemu-system-aarch64 -machine virt -cpu ${CPU} -smp ${SMP} -m ${MEM} \
 	-kernel "$KERNEL" -append "$CMDLINE" \
 	${INITRD:+-initrd ${INITRD}} \
 	-nographic \
-	-drive "format=raw,file=$IMAGE,if=none,id=hd0,cache=writeback,media=disk" \
-	-device virtio-blk,drive=hd0,bootindex=0 \
+	${IMAGE:+-drive "format=raw,file=$IMAGE,if=none,id=hd0,cache=writeback,media=disk" -device virtio-blk,drive=hd0,bootindex=0} \
 	-netdev user,id=mynet,hostfwd=tcp::${SSH_PORT}-:22 \
 	-device virtio-net-pci,netdev=mynet \
 	-monitor telnet:127.0.0.1:${TELNET_PORT},server,nowait \
